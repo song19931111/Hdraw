@@ -39,6 +39,7 @@ void HStroke::DrawStroke(CDC *pDC)
 	if(( m_bSelected||m_bHighLight ) && m_points.GetSize() == 2)
 	{
 		m_tracker.m_nStyle = CRectTracker::resizeInside;
+
 		m_tracker.m_rect.SetRect(m_points.GetAt(0), m_points.GetAt(1));
 		m_tracker.m_rect.NormalizeRect();
 		m_tracker.Draw(pDC);
@@ -105,6 +106,7 @@ void HStrokeLine::SetCurrentPoint(CPoint point)
 		m_points.ElementAt(1) = point;
 	}
 }
+enum PICEXTRA_TYPE{enum_left_right = 0,enum_right_left = 1,enum_vertical =2 ,enum_horizon = 3};
 void HStrokeLine::DrawStroke(CDC *pDC)
 {
 	//左上->右下(0) or 左下-右上(1)
@@ -112,8 +114,41 @@ void HStrokeLine::DrawStroke(CDC *pDC)
 	//判断斜率
 	//m_picExtra = 1 斜率小于0   
 	// m_picExtra = 0 斜率大于0
+	//HStroke::DrawStroke(pDC);
+	CPen *pOld, pNew; 
+	pNew.CreatePen(m_penStyle, m_penWidth, m_penColor);
+	pOld = pDC->SelectObject(&pNew);
+	_Draw(pDC);
 	m_tracker.m_picExtra = (m_points.GetAt(0).x - m_points.GetAt(1).x) * (m_points.GetAt(0).y - m_points.GetAt(1).y) < 0;
-	HStroke::DrawStroke(pDC);
+	if (0  == (m_points.GetAt(0).x - m_points.GetAt(1).x )  ) 
+	{
+		m_tracker.m_picExtra = enum_vertical; 
+		m_tracker.m_b_temp_rect = true; 
+		m_tracker.m_temp_rect  = CRect(m_points.GetAt(0).x-10,m_points.GetAt(0).y,m_points.GetAt(1).x+10,m_points.GetAt(1).y);
+	}
+	else if ( 0 == m_points.GetAt(0).y - m_points.GetAt(1).y  )
+	{
+		m_tracker.m_picExtra = enum_horizon;
+		m_tracker.m_b_temp_rect = true; 
+		m_tracker.m_temp_rect  = CRect(m_points.GetAt(0).x,m_points.GetAt(0).y-10,m_points.GetAt(1).x,m_points.GetAt(0).y+10);
+	}
+	
+	if(( m_bSelected||m_bHighLight ) && m_points.GetSize() == 2)
+	{
+		m_tracker.m_nStyle = CRectTracker::resizeInside;
+		if ( m_tracker.m_picExtra == enum_horizon ||m_tracker.m_picExtra==enum_vertical  )
+		{
+			m_tracker.m_rect = m_tracker.m_temp_rect;
+		}
+		else
+		{
+			m_tracker.m_rect  =CRect(m_points.GetAt(0),m_points.GetAt(1));
+		}
+		m_tracker.m_rect.NormalizeRect();
+		m_tracker.Draw(pDC);
+	}
+	//HStroke::DrawStroke(pDC);
+
 }
 void HStrokeLine::_Draw(CDC *pDC)
 {
@@ -640,6 +675,7 @@ void HStrokeSelect::DrawStroke(CDC *pDC)
 }
 HStrokeTracker::HStrokeTracker():CRectTracker(){
 	m_picType = PIC_rect;
+	m_b_temp_rect = false;
 }
 void HStrokeTracker::Draw(CDC* pDC) const
 {	
@@ -647,11 +683,19 @@ void HStrokeTracker::Draw(CDC* pDC) const
 	CRectTracker::Draw(pDC);
 
 	//直线
+	
 	if((m_picType == PIC_line) && ((m_nStyle&(resizeInside|resizeOutside))!=0))
 	{
 		UINT mask = GetHandleMask();
 		for (int i = 0; i < 8; ++i)
 		{
+			if ( m_picExtra == enum_vertical || m_picExtra == enum_horizon )
+			{
+				GetHandleRect((TrackerHit)i, &rect);
+				pDC->FillSolidRect(rect, RGB(0, 0, 0));
+				continue ;
+			}
+
 			//对于直线来说，由于其的TrackRect是一个矩形，所以，用m_picExtra判断直线的方向
 			//当这条直线在正确方向的时候，才会出现
 			//即点击直线的左上右下的时候才会有框出现
@@ -660,11 +704,21 @@ void HStrokeTracker::Draw(CDC* pDC) const
 				int x = 1<<i;
 				int p1, p2;
 				//左上+右下 的时候，才会有框出现
-				if(m_picExtra == 0)
+				if(m_picExtra == enum_left_right)
 				{
 					p1 = 1, p2 = 4;
 				}
 				//左下+右上的时候，才会有框出现
+				//else if (m_picExtra == enum_horizon)
+				//{
+				//	//水平
+				//	p1 =128; p2 = 32;
+				//}
+				//else if ( m_picExtra== enum_vertical )
+				//{
+				//	//竖直
+				//	p1 = 16; p2 =64 ;
+				//}
 				else
 				{
 					p1 = 2, p2 = 8;
@@ -672,12 +726,17 @@ void HStrokeTracker::Draw(CDC* pDC) const
 				if( ((1<<i) == p1) || ((1<<i) == p2) )
 				{
 					GetHandleRect((TrackerHit)i, &rect);
+				/*	if (  m_picExtra  == enum_vertical  || m_picExtra == enum_horizon)
+					{
+						rect  = this->m_temp_rect;
+					}*/
 					pDC->FillSolidRect(rect, RGB(0, 0, 0));
 				}
 				else
 				{
+					
 					GetHandleRect((TrackerHit)i, &rect);
-					pDC->FillSolidRect(rect, RGB(255, 255, 255));
+					pDC->FillSolidRect(rect, RGB(255,255,255));
 				}
 			}
 		 }//for 

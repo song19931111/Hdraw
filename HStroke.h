@@ -18,6 +18,8 @@ public:
 	int m_picExtra;
 	HPicType m_picType;
 	HStrokeTracker();
+	CRect m_temp_rect ;// 用于存取竖直或者横向直线的坐标
+	bool m_b_temp_rect ;//是否开启temp_rect ;
 	void Draw( CDC* pDC ) const;
 };
 
