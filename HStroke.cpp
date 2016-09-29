@@ -180,6 +180,11 @@ void HStrokeArrow::DrawStroke(CDC *pDC)
 	 
 }*/
 IMPLEMENT_SERIAL(HStrokeArrow, HStrokeLine, 1)
+
+ HStrokeArrow::HStrokeArrow()
+{
+	m_picType = PIC_ARROW;
+}
 void HStrokeArrow::_Draw(CDC *pDC)
 {
 	DrawArrowLine(pDC,m_points.GetAt(0),m_points.GetAt(1));

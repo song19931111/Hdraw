@@ -186,6 +186,7 @@ void CHDrawDoc::OnDrawLine()
 {
 	// TODO: Add your command handler code here
 	m_picType = PIC_line;
+	
 }
 void CHDrawDoc::OnTestPic() 
 {
@@ -287,6 +288,14 @@ void CHDrawDoc::OnUpdateDrawLine(CCmdUI* pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
 	pCmdUI->SetCheck(PIC_line == m_picType);
+	if (PIC_line == m_picType )
+	{
+		TRACE("PIC_LINE_TRUE\n");
+	}
+	else
+	{
+		TRACE("PIC_LINE_FALSE\n");
+	}
 }
 void CHDrawDoc::OnUpdateBtPic(CCmdUI* pCmdUI)
 {

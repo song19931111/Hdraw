@@ -74,8 +74,8 @@ protected:
 class HStrokeArrow : public HStrokeLine  
 {
 public:
-	
-	DECLARE_SERIAL(HStrokeArrow)
+	HStrokeArrow();
+	DECLARE_SERIAL(HStrokeArrow);
 	//virtual void SetCurrentPoint(CPoint point);
 	//virtual void ReDrawStroke(CDC *pDC, CPoint point);
 //	virtual void DrawStroke(CDC *pDC);
